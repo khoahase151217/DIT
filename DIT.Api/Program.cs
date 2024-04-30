@@ -1,8 +1,16 @@
 using DIT.Infrastructure;
 using log4net.Config;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure forwarded headers
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.KnownProxies.Add(IPAddress.Parse("103.1.237.131"));
+});
 
 //Configure Log4net.
 XmlConfigurator.Configure(new FileInfo("log4net.config"));
@@ -47,6 +55,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
