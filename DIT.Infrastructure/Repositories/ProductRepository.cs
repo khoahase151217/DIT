@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using DIT.Core;
 using System.Text;
+using DIT.Core.Dtos;
 
 namespace DIT.Infrastructure
 {
@@ -81,11 +82,14 @@ namespace DIT.Infrastructure
 				// Set first query
 				var queries = @$"
 					SELECT
-                    [ID],
-                    [ProductName],
-                    [CategoryID],
-                    [Photo],
-                    [ViewCount] FROM [Products] (NOLOCK)
+                    [Products].[ID],
+                    [Products].[ProductName],
+                    [Products].[CategoryID],
+                    [Products].[Photo],
+                    [Products].[ViewCount],
+					[Categories].[CategoryName] FROM [Products] (NOLOCK)
+					LEFT JOIN [Categories] (NOLOCK)
+					ON [Products].[CategoryID] = [Categories].[ID]
                 {whereStatement}                
                 ORDER BY [ProductName]
                 OFFSET @PageSize * @PageNumber ROWS
@@ -133,15 +137,18 @@ namespace DIT.Infrastructure
 			{
 				connection.Open();
 
-				string whereStatement = $"WHERE [ID] = '{id}'";
+				string whereStatement = $"WHERE [Products].[ID] = '{id}'";
 
 				var selectQueries = @$"
                 SELECT
-                    [ID],
-                    [ProductName],
-                    [CategoryID],
-                    [Photo],
-                    [ViewCount] FROM [Products] (NOLOCK)
+                    [Products].[ID],
+                    [Products].[ProductName],
+                    [Products].[CategoryID],
+                    [Products].[Photo],
+                    [Products].[ViewCount],
+					[Categories].[CategoryName] FROM [Products] (NOLOCK)
+					LEFT JOIN [Categories] (NOLOCK)
+					ON [Products].[CategoryID] = [Categories].[ID]
                 {whereStatement}                
                 ;";
 
@@ -160,6 +167,69 @@ namespace DIT.Infrastructure
 				return result;
 			}
 		}
-		#endregion
-	}
+
+        public async Task DeleteByIdAsync(Guid id)
+        {
+            using (IDbConnection connection = new SqlConnection(_configuration.GetConnectionString("DBConnection")))
+            {
+                connection.Open();
+
+                var sql = @$"DELETE FROM [Products] WHERE [ID] = '{id}'";
+
+                await connection.ExecuteAsync(sql);
+            }
+        }
+
+        public async Task InsertOrUpdateAsync(PostProductRequest request)
+        {
+            using (IDbConnection connection = new SqlConnection(_configuration.GetConnectionString("DBConnection")))
+            {
+                connection.Open();
+
+                if (request.ID != null)
+                {
+
+                    var selectQueries = @$"
+                    SELECT
+						[ID],
+						[ProductName],
+						[CategoryID],
+						[Photo] FROM [Products] (NOLOCK)
+                    WHERE [ID] = '{request.ID}'              
+                    ;";
+
+                    var product = await connection.QuerySingleOrDefaultAsync<Product>(selectQueries);
+
+                    if (request.ProductName != null)
+                    {
+                        product.ProductName = request.ProductName;
+                    }
+
+                    if (request.CategoryID != null)
+                    {
+                        product.CategoryID = request.CategoryID;
+                    }
+
+                    if (request.Photo != null)
+                    {
+                        product.Photo = Convert.FromBase64String(request.Photo);
+                    }
+
+                    string sql = "UPDATE Products SET ProductName = @ProductName, CategoryID = @CategoryID, Photo = @Photo WHERE ID = @ID;";
+                    await connection.ExecuteAsync(sql, product);
+                }
+                else
+                {
+                    Guid id = Guid.NewGuid();
+                    var sql = "INSERT INTO Products (ID, ProductName, CategoryID, Photo, ViewCount) VALUES (@ID, @ProductName, @CategoryID, @Photo, @ViewCount)";
+
+                    var product = new Product() { ID = id, ProductName = request.ProductName, CategoryID = request.CategoryID, Photo = Convert.FromBase64String(request.Photo), ViewCount = 1 };
+                    await connection.ExecuteAsync(sql, product);
+
+                }
+
+            }
+        }
+        #endregion
+    }
 }

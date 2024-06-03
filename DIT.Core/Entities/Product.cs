@@ -11,9 +11,11 @@ namespace DIT.Core.Entities
 	{
 		public string ProductName { get; set; }
 
-		public Guid CategoryID { get; set; }
+		public Guid? CategoryID { get; set; }
 
-		public byte[]? Photo { get; set; }
+        public string? CategoryName { get; set; }
+
+        public byte[]? Photo { get; set; }
 		public int ViewCount { get; set; }
 	}
 }

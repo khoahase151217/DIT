@@ -3,6 +3,9 @@ using log4net.Config;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Net;
+using DIT.Api.Helpers;
+using WebApi.Helpers;
+using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 //Configure Log4net.
 XmlConfigurator.Configure(new FileInfo("log4net.config"));
+XmlConfigurator.Configure(new FileInfo("web.release.config"));
 
 //Injecting services.
 builder.Services.RegisterServices();
@@ -23,6 +27,10 @@ builder.Services.AddCors(c => { c.AddPolicy("AllowOrigin", options => options.Al
 // Add services to the container.
 builder.Services.AddControllers();
 
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -30,7 +38,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
     {
-        Description = "api key.",
+        Description = "api key",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -74,6 +82,9 @@ if (app.Environment.IsDevelopment())
 app.UseCors(cors => cors.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
 app.UseAuthorization();
+
+// custom jwt auth middleware
+app.UseMiddleware<JwtMiddleware>();
 
 app.MapControllers();
 

@@ -1,12 +1,15 @@
 ﻿using DIT.Application.Interfaces;
 using DIT.Core;
+using DIT.Core.Dtos;
 using DIT.Core.Entities;
 using DIT.Logging;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
+using WebApi.Helpers;
 
 namespace DIT.Controllers
 {
+    //[Authorize]
     public class ProductController : ControllerBase
     {
         #region ===[ Private Members ]=============================================================
@@ -57,7 +60,7 @@ namespace DIT.Controllers
 			return apiResponse;
         }
 
-		[HttpGet("/api/v1/product/{id}")]
+        [HttpGet("/api/v1/product/{id}")]
 		public async Task<Product> GetById(Guid id)
 		{
 
@@ -77,6 +80,43 @@ namespace DIT.Controllers
 
 			return apiResponse;
 		}
-		#endregion
-	}
+
+        [HttpPost("/api/v1/product")]
+        public async Task InsertOrUpdate([FromBody] PostProductRequest request)
+        {
+
+            try
+            {
+                await _unitOfWork.Product.InsertOrUpdateAsync(request);
+            }
+            catch (SqlException ex)
+            {
+                Logger.Instance.Error("SQL Exception:", ex);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error("Exception:", ex);
+            }
+
+        }
+
+        [HttpDelete("/api/v1/product/delete/{id}")]
+        public async Task DeleteById(Guid id)
+        {
+
+            try
+            {
+                await _unitOfWork.Product.DeleteByIdAsync(id);
+            }
+            catch (SqlException ex)
+            {
+                Logger.Instance.Error("SQL Exception:", ex);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error("Exception:", ex);
+            }
+        }
+        #endregion
+    }
 }
