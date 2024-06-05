@@ -174,10 +174,6 @@ namespace DIT.Infrastructure
             {
                 connection.Open();
 
-                var sql = @$"DELETE FROM [Products] WHERE [ID] = '{id}'";
-
-                await connection.ExecuteAsync(sql);
-
                 string whereStatement = $"WHERE [Products].[ID] = '{id}'";
 
                 var selectQueries = @$"
@@ -194,6 +190,10 @@ namespace DIT.Infrastructure
                 ;";
 
                 var product = await connection.QuerySingleOrDefaultAsync<Product>(selectQueries);
+
+                var sql = @$"DELETE FROM [Products] WHERE [ID] = '{id}'";
+
+                await connection.ExecuteAsync(sql);
 
                 return product;
             }
