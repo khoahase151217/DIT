@@ -9,6 +9,6 @@ namespace DIT.Application.Interfaces
         Task<GetResponse<Product>> GetAllAsync(Guid? category, int? page, int? size, string? q);
         Task<Product> GetByIdAsync(Guid id);
         Task InsertOrUpdateAsync(PostProductRequest request);
-        Task DeleteByIdAsync(Guid id);
+        Task<Product> DeleteByIdAsync(Guid id);
     }
 }

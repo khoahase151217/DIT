@@ -3,8 +3,10 @@
 using DIT.Api.Helpers;
 using DIT.Core.Dtos;
 using DIT.Core.Entities;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -37,9 +39,10 @@ public class AuthenticationService : IAuthenticationService
         };
 
         // authentication successful so generate jwt token
-        user.Token = generateJwtToken();
+        DateTime expTime;
+        (user.Token, expTime) = generateJwtToken();
 
-        return new AuthenticateResponse(user);
+        return new AuthenticateResponse(user, expTime.ToString("O"));
     }
 
     public AuthenticateResponse GetProfile(string token)
@@ -49,12 +52,26 @@ public class AuthenticationService : IAuthenticationService
             UserName = _appSettings.UserName,
             Token = token
         };
-        return new AuthenticateResponse(user);
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+        tokenHandler.ValidateToken(token, new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+            ClockSkew = TimeSpan.Zero
+        }, out SecurityToken validatedToken);
+
+        var jwtToken = (JwtSecurityToken)validatedToken;
+        return new AuthenticateResponse(user, jwtToken.ValidTo.ToString("O"));
     }
 
     // helper methods
 
-    private string generateJwtToken()
+    private (string, DateTime) generateJwtToken()
     {
         // generate token that is valid for 7 days
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -66,6 +83,6 @@ public class AuthenticationService : IAuthenticationService
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        return (tokenHandler.WriteToken(token), tokenDescriptor.Expires.Value);
     }
 }

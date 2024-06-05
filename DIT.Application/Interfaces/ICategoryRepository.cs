@@ -8,6 +8,6 @@ namespace DIT.Application.Interfaces
         Task<IEnumerable<Category>> GetAllAsync(string q);
         Task<Category> GetByIdAsync(Guid id);
         Task InsertOrUpdateAsync(PostCategoryRequest request);
-        Task DeleteByIdAsync(Guid id);
+        Task<Category> DeleteByIdAsync(Guid id);
     }
 }

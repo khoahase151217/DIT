@@ -10,7 +10,7 @@ using WebApi.Helpers;
 
 namespace DIT.Api.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class CategoryController : ControllerBase
 	{
 		#region ===[ Private Members ]=============================================================
@@ -97,12 +97,12 @@ namespace DIT.Api.Controllers
         }
 
         [HttpDelete("/api/v1/category/delete/{id}")]
-        public async Task DeleteById(Guid id)
+        public async Task<Category> DeleteById(Guid id)
         {
-
+            var apiResponse = new Category();
             try
             {
-                await _unitOfWork.Category.DeleteByIdAsync(id);
+                apiResponse = await _unitOfWork.Category.DeleteByIdAsync(id);
             }
             catch (SqlException ex)
             {
@@ -112,6 +112,7 @@ namespace DIT.Api.Controllers
             {
                 Logger.Instance.Error("Exception:", ex);
             }
+            return apiResponse;
         }
 
         #endregion

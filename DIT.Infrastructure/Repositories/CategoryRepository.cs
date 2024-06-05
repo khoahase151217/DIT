@@ -81,7 +81,7 @@ namespace DIT.Infrastructure
             }
         }
 
-        public async Task DeleteByIdAsync(Guid id)
+        public async Task<Category> DeleteByIdAsync(Guid id)
         {
             using (IDbConnection connection = new SqlConnection(_configuration.GetConnectionString("DBConnection")))
             {
@@ -90,6 +90,20 @@ namespace DIT.Infrastructure
                 var sql = @$"DELETE FROM [Categories] WHERE [ID] = '{id}'";
 
                 await connection.ExecuteAsync(sql);
+
+                string whereStatement = $"WHERE [ID] = '{id}'";
+
+                var selectQueries = @$"
+                SELECT
+                    [ID],
+                    [CategoryName],
+                    [Photo] FROM [Categories] (NOLOCK)
+                {whereStatement}                
+                ;";
+
+                var category = await connection.QuerySingleOrDefaultAsync<Category>(selectQueries);
+
+                return category;
             }
         }
 

@@ -168,7 +168,7 @@ namespace DIT.Infrastructure
 			}
 		}
 
-        public async Task DeleteByIdAsync(Guid id)
+        public async Task<Product> DeleteByIdAsync(Guid id)
         {
             using (IDbConnection connection = new SqlConnection(_configuration.GetConnectionString("DBConnection")))
             {
@@ -177,6 +177,25 @@ namespace DIT.Infrastructure
                 var sql = @$"DELETE FROM [Products] WHERE [ID] = '{id}'";
 
                 await connection.ExecuteAsync(sql);
+
+                string whereStatement = $"WHERE [Products].[ID] = '{id}'";
+
+                var selectQueries = @$"
+                SELECT
+                    [Products].[ID],
+                    [Products].[ProductName],
+                    [Products].[CategoryID],
+                    [Products].[Photo],
+                    [Products].[ViewCount],
+					[Categories].[CategoryName] FROM [Products] (NOLOCK)
+					LEFT JOIN [Categories] (NOLOCK)
+					ON [Products].[CategoryID] = [Categories].[ID]
+                {whereStatement}                
+                ;";
+
+                var product = await connection.QuerySingleOrDefaultAsync<Product>(selectQueries);
+
+                return product;
             }
         }
 

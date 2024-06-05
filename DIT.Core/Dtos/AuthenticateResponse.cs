@@ -12,13 +12,15 @@ namespace DIT.Core.Dtos
     {
         public string Username { get; set; }
         public string Token { get; set; }
+        public string? ExpTime { get; set; }
 
 
-        public AuthenticateResponse(User user)
+        public AuthenticateResponse(User user, string expTime)
         {
 
             Username = user.UserName;
             Token = user.Token;
+            ExpTime = expTime;
         }
     }
 }

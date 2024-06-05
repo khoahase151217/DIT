@@ -33,7 +33,7 @@ namespace DIT.Api.Controllers
 		[HttpGet("/api/v1/login")]
 		public AuthenticateResponse Login(AuthenticateRequest request)
 		{
-            AuthenticateResponse apiResponse = new AuthenticateResponse(new Core.Entities.User{ UserName = string.Empty});
+            AuthenticateResponse apiResponse = new AuthenticateResponse(new Core.Entities.User { UserName = string.Empty }, string.Empty);
 
             try
 			{
@@ -57,7 +57,7 @@ namespace DIT.Api.Controllers
         [HttpGet("/api/v1/getProfile")]
         public AuthenticateResponse GetProfile()
         {
-            AuthenticateResponse apiResponse = new AuthenticateResponse(new Core.Entities.User { UserName = string.Empty });
+            AuthenticateResponse apiResponse = new AuthenticateResponse(new Core.Entities.User { UserName = string.Empty }, string.Empty);
             try
             {
                 apiResponse = (AuthenticateResponse)_authenticationService.GetProfile(Request.Headers.Authorization);

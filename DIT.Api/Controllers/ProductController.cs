@@ -9,7 +9,7 @@ using WebApi.Helpers;
 
 namespace DIT.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class ProductController : ControllerBase
     {
         #region ===[ Private Members ]=============================================================
@@ -101,12 +101,12 @@ namespace DIT.Controllers
         }
 
         [HttpDelete("/api/v1/product/delete/{id}")]
-        public async Task DeleteById(Guid id)
+        public async Task<Product> DeleteById(Guid id)
         {
-
+            var apiResponse = new Product();
             try
             {
-                await _unitOfWork.Product.DeleteByIdAsync(id);
+                apiResponse = await _unitOfWork.Product.DeleteByIdAsync(id);
             }
             catch (SqlException ex)
             {
@@ -116,6 +116,8 @@ namespace DIT.Controllers
             {
                 Logger.Instance.Error("Exception:", ex);
             }
+
+            return apiResponse;
         }
         #endregion
     }
