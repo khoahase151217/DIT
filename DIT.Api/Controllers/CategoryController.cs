@@ -10,7 +10,6 @@ using WebApi.Helpers;
 
 namespace DIT.Api.Controllers
 {
-    [Authorize]
     public class CategoryController : ControllerBase
 	{
 		#region ===[ Private Members ]=============================================================
@@ -77,6 +76,7 @@ namespace DIT.Api.Controllers
             return apiResponse;
         }
 
+        [Authorize]
         [HttpPost("/api/v1/category")]
         public async Task InsertOrUpdate([FromBody] PostCategoryRequest request)
         {
@@ -96,6 +96,7 @@ namespace DIT.Api.Controllers
 
         }
 
+        [Authorize]
         [HttpDelete("/api/v1/category/delete/{id}")]
         public async Task<Category> DeleteById(Guid id)
         {

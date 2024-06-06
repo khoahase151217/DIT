@@ -9,7 +9,6 @@ using WebApi.Helpers;
 
 namespace DIT.Controllers
 {
-    [Authorize]
     public class ProductController : ControllerBase
     {
         #region ===[ Private Members ]=============================================================
@@ -81,6 +80,7 @@ namespace DIT.Controllers
 			return apiResponse;
 		}
 
+        [Authorize]
         [HttpPost("/api/v1/product")]
         public async Task InsertOrUpdate([FromBody] PostProductRequest request)
         {
@@ -100,6 +100,7 @@ namespace DIT.Controllers
 
         }
 
+        [Authorize]
         [HttpDelete("/api/v1/product/delete/{id}")]
         public async Task<Product> DeleteById(Guid id)
         {
